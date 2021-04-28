@@ -42,7 +42,7 @@ public class ProfitTableContent extends MarketTableContent {
         for (MarketAPI buyMarket : super.markets) {
             int j = 1;
             for (MarketAPI sellMarket : sellmarkets) {
-                if ((j > 5) || (getPotentialProffit(buyMarket, sellMarket) >= 100000)) {
+                if ((j > 5) || (getPotentialProffit(buyMarket, sellMarket) <= 100000)) {
                     continue;
                 }
 
