@@ -1,6 +1,8 @@
 package stelnet.commodity.data.content.profit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
@@ -37,23 +39,49 @@ public class ProfitTableContent extends MarketTableContent {
 
     @Override
     public List<Object[]> getRows() {
-        List<Object[]> content = new ArrayList<>();
+        List<Row> content = new ArrayList<>();
         int i = 1;
         for (MarketAPI buyMarket : super.markets) {
-            int j = 1;
             for (MarketAPI sellMarket : sellmarkets) {
-                if ((j > 5) || (getPotentialProffit(buyMarket, sellMarket) <= 100000)) {
+                if (getPotentialProffit(buyMarket, sellMarket) <= 100000) {
                     continue;
                 }
 
-                Object[] row = createRow(i, buyMarket, sellMarket);
+                Row row = createRow(i, buyMarket, sellMarket);
                 content.add(row);
-                j++;
             }
-
             i++;
         }
-        return content;
+
+        Collections.sort(content);
+
+        List<Object[]> rows = new ArrayList<>();
+        for (Row row : content) {
+            rows.add(Arrays.copyOf(row.getRow(), 24));
+        }
+
+        return rows;
+    }
+
+    private static class Row implements Comparable {
+        Object[] row;
+
+        public Row(Object[] row) {
+            this.row = row;
+        }
+
+        public Object[] getRow() {
+            return row;
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            return compare(row, ((Row) o).getRow());
+        }
+
+        private int compare(Object[] o1, Object[] o2) {
+            return (int) ((float) o2[24] - (float) o1[24]);
+        }
     }
 
 
@@ -63,13 +91,13 @@ public class ProfitTableContent extends MarketTableContent {
         return new Object[0];
     }
 
-    protected Object[] createRow(int i, MarketAPI buyMarket, MarketAPI sellMarket) {
+    protected Row createRow(int i, MarketAPI buyMarket, MarketAPI sellMarket) {
         float buyPrice = getPrice(buyMarket);
         float sellPrice = getPrice(sellMarket);
         CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
         int available = helper.getAvailable(commodity);
 
-        Object[] row = new Object[24];
+        Object[] row = new Object[25];
         // Position
         row[0] = Alignment.MID;
         row[1] = Misc.getGrayColor();
@@ -116,7 +144,10 @@ public class ProfitTableContent extends MarketTableContent {
             row[22] = Misc.getHighlightColor();
         }
         row[23] = String.format("%.1f", playerToBuy + buyToSell);
-        return row;
+
+        // For sorting
+        row[24] = getPotentialProffit(buyMarket, sellMarket);
+        return new Row(row);
     }
 
     private float getPotentialProffit(MarketAPI buyMarket, MarketAPI sellMarket) {
