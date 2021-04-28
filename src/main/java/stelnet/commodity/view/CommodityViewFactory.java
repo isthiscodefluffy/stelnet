@@ -1,7 +1,12 @@
 package stelnet.commodity.view;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+
 import org.lwjgl.input.Keyboard;
+
 import stelnet.commodity.CommodityBoard.CommodityTab;
 import stelnet.commodity.data.MarketFactory;
 import stelnet.commodity.data.content.buy.BuyMarketFactory;
@@ -9,10 +14,11 @@ import stelnet.commodity.data.content.buy.BuyTableContent;
 import stelnet.commodity.data.content.profit.ProfitTableContent;
 import stelnet.commodity.data.content.sell.SellMarketFactory;
 import stelnet.commodity.data.content.sell.SellTableContent;
-import stelnet.ui.*;
-
-import java.util.Arrays;
-import java.util.List;
+import stelnet.ui.Renderable;
+import stelnet.ui.Row;
+import stelnet.ui.Stack;
+import stelnet.ui.Table;
+import stelnet.ui.TableContent;
 
 public class CommodityViewFactory {
 

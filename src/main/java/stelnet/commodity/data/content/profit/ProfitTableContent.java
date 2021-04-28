@@ -1,19 +1,20 @@
 package stelnet.commodity.data.content.profit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.util.Misc;
+
 import stelnet.commodity.data.content.MarketTableContent;
 import stelnet.commodity.data.content.buy.SupplyPrice;
 import stelnet.commodity.data.content.sell.SellMarketFactory;
 import stelnet.helper.StarSystemHelper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ProfitTableContent extends MarketTableContent {
-    private List<MarketAPI> sellmarkets;
+    private final List<MarketAPI> sellmarkets;
 
     public ProfitTableContent(String commodityId, List<MarketAPI> buyMarkets) {
         super(commodityId, buyMarkets, new SupplyPrice(commodityId));
@@ -22,7 +23,7 @@ public class ProfitTableContent extends MarketTableContent {
 
     @Override
     public Object[] getHeaders(float width) {
-        Object header[] = {
+        return new Object[]{
                 "#", .05f * width,
                 "Buy Price", .1f * width,
                 "Sell Price", .1f * width,
@@ -32,7 +33,6 @@ public class ProfitTableContent extends MarketTableContent {
                 "Sell Location", .2f * width,
                 "Total Dist (ly)", .1f * width
         };
-        return header;
     }
 
     @Override
@@ -42,17 +42,20 @@ public class ProfitTableContent extends MarketTableContent {
         for (MarketAPI buyMarket : super.markets) {
             int j = 1;
             for (MarketAPI sellMarket : sellmarkets) {
-                if (j > 5) {
+                if ((j > 5) || (getPotentialProffit(buyMarket, sellMarket) >= 100000)) {
                     continue;
                 }
-                Object[] row = getRow(i, buyMarket, sellMarket);
+
+                Object[] row = createRow(i, buyMarket, sellMarket);
                 content.add(row);
                 j++;
             }
+
             i++;
         }
         return content;
     }
+
 
     // We fail to comply with Interface segregation principle here.
     @Override
@@ -60,15 +63,12 @@ public class ProfitTableContent extends MarketTableContent {
         return new Object[0];
     }
 
-    protected Object[] getRow(int i, MarketAPI buyMarket, MarketAPI sellMarket) {
-        CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
+    protected Object[] createRow(int i, MarketAPI buyMarket, MarketAPI sellMarket) {
         float buyPrice = getPrice(buyMarket);
         float sellPrice = getPrice(sellMarket);
+        CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
         int available = helper.getAvailable(commodity);
-        return getRow(i, buyPrice, sellPrice, available, buyMarket, sellMarket);
-    }
 
-    protected Object[] getRow(int i, float buyPrice, float sellPrice, int available, MarketAPI buyMarket, MarketAPI sellMarket) {
         Object[] row = new Object[24];
         // Position
         row[0] = Alignment.MID;
@@ -93,9 +93,7 @@ public class ProfitTableContent extends MarketTableContent {
         // Profit
         row[12] = Alignment.MID;
         row[13] = Misc.getHighlightColor();
-        float bought = buyPrice * available;
-        float sold = sellPrice * available;
-        row[14] = Misc.getDGSCredits(sold - bought);
+        row[14] = Misc.getDGSCredits(getPotentialProffit(buyMarket, sellMarket));
 
         // Buy Location
         row[15] = Alignment.LMID;
@@ -119,5 +117,15 @@ public class ProfitTableContent extends MarketTableContent {
         }
         row[23] = String.format("%.1f", playerToBuy + buyToSell);
         return row;
+    }
+
+    private float getPotentialProffit(MarketAPI buyMarket, MarketAPI sellMarket) {
+        float buyPrice = getPrice(buyMarket);
+        float sellPrice = getPrice(sellMarket);
+        CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
+        int available = helper.getAvailable(commodity);
+        float bought = buyPrice * available;
+        float sold = sellPrice * available;
+        return (sold - bought);
     }
 }
