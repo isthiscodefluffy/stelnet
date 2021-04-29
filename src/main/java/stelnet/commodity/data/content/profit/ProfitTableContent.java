@@ -29,7 +29,7 @@ public class ProfitTableContent extends MarketTableContent {
                 "#", .05f * width,
                 "Buy Price", .1f * width,
                 "Sell Price", .1f * width,
-                "Available", .1f * width,
+                "Avail. / Demand", .15f * width,
                 "Profit", .1f * width,
                 "Buy Location", .2f * width,
                 "Sell Location", .2f * width,
@@ -43,7 +43,7 @@ public class ProfitTableContent extends MarketTableContent {
         int i = 1;
         for (MarketAPI buyMarket : super.markets) {
             for (MarketAPI sellMarket : sellmarkets) {
-                if (getPotentialProffit(buyMarket, sellMarket) <= 100000) {
+                if (getPotentialProfit(buyMarket, sellMarket) <= 100000) {
                     continue;
                 }
 
@@ -72,8 +72,8 @@ public class ProfitTableContent extends MarketTableContent {
     protected Row createRow(int i, MarketAPI buyMarket, MarketAPI sellMarket) {
         float buyPrice = getPrice(buyMarket);
         float sellPrice = getPrice(sellMarket);
-        CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
-        int available = helper.getAvailable(commodity);
+        CommodityOnMarketAPI sellToMarketCommodity = sellMarket.getCommodityData(commodityId);
+        CommodityOnMarketAPI buyFromCommodity = buyMarket.getCommodityData(commodityId);
 
         Object[] row = new Object[25];
         // Position
@@ -91,22 +91,22 @@ public class ProfitTableContent extends MarketTableContent {
         row[7] = Misc.getHighlightColor();
         row[8] = Misc.getDGSCredits(sellPrice);
 
-        // Available
+        // Available / Demand
         row[9] = Alignment.MID;
         row[10] = Misc.getHighlightColor();
-        row[11] = Misc.getWithDGS(available);
+        row[11] = Misc.getWithDGS(helper.getAvailable(buyFromCommodity)) + " / " + Misc.getWithDGS(helper.getDemand(sellMarket, sellToMarketCommodity));
 
         // Profit
         row[12] = Alignment.MID;
         row[13] = Misc.getHighlightColor();
-        row[14] = Misc.getDGSCredits(getPotentialProffit(buyMarket, sellMarket));
+        row[14] = Misc.getDGSCredits(getPotentialProfit(buyMarket, sellMarket));
 
         // Buy Location
         row[15] = Alignment.LMID;
         row[16] = buyMarket.getTextColorForFactionOrPlanet();
         row[17] = helper.getLocation(buyMarket);
 
-        // Buy Location
+        // Sell Location
         row[18] = Alignment.LMID;
         row[19] = sellMarket.getTextColorForFactionOrPlanet();
         row[20] = helper.getLocation(sellMarket);
@@ -124,18 +124,35 @@ public class ProfitTableContent extends MarketTableContent {
         row[23] = String.format("%.1f", playerToBuy + buyToSell);
 
         // For sorting
-        row[24] = getPotentialProffit(buyMarket, sellMarket);
+        row[24] = getPotentialProfit(buyMarket, sellMarket);
         return new Row(row);
     }
 
-    private float getPotentialProffit(MarketAPI buyMarket, MarketAPI sellMarket) {
-        float buyPrice = getPrice(buyMarket);
-        float sellPrice = getPrice(sellMarket);
-        CommodityOnMarketAPI commodity = buyMarket.getCommodityData(commodityId);
-        int available = helper.getAvailable(commodity);
-        float bought = buyPrice * available;
-        float sold = sellPrice * available;
-        return (sold - bought);
+    private float getPotentialProfit(MarketAPI buyFromMarket, MarketAPI sellToMarket) {
+        float buyPrice = getPrice(buyFromMarket);
+        float sellPrice = getPrice(sellToMarket);
+
+        if (buyPrice >= sellPrice) {
+            return 0;
+        }
+
+        CommodityOnMarketAPI buyFromCommodity = buyFromMarket.getCommodityData(commodityId);
+        CommodityOnMarketAPI sellToCommodity = sellToMarket.getCommodityData(commodityId);
+
+        int available = helper.getAvailable(buyFromCommodity);
+        int demand = helper.getDemand(sellToMarket, sellToCommodity);
+
+        if (available < 400) {
+            return 0;
+        }
+
+        if (demand > available) {
+            demand = available;
+        }
+
+        float bought = buyPrice * demand;
+        float sold = sellPrice * demand;
+        return sold - bought;
     }
 
     private static class Row implements Comparable {
