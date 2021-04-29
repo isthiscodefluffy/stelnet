@@ -63,28 +63,6 @@ public class ProfitTableContent extends MarketTableContent {
         return rows;
     }
 
-    private static class Row implements Comparable {
-        Object[] row;
-
-        public Row(Object[] row) {
-            this.row = row;
-        }
-
-        public Object[] getRow() {
-            return row;
-        }
-
-        @Override
-        public int compareTo(Object o) {
-            return compare(row, ((Row) o).getRow());
-        }
-
-        private int compare(Object[] o1, Object[] o2) {
-            return (int) ((float) o2[24] - (float) o1[24]);
-        }
-    }
-
-
     // We fail to comply with Interface segregation principle here.
     @Override
     protected Object[] getRow(int i, MarketAPI market) {
@@ -158,5 +136,26 @@ public class ProfitTableContent extends MarketTableContent {
         float bought = buyPrice * available;
         float sold = sellPrice * available;
         return (sold - bought);
+    }
+
+    private static class Row implements Comparable {
+        Object[] row;
+
+        public Row(Object[] row) {
+            this.row = row;
+        }
+
+        public Object[] getRow() {
+            return row;
+        }
+
+        @Override
+        public int compareTo(Object o) {
+            return compare(row, ((Row) o).getRow());
+        }
+
+        private int compare(Object[] o1, Object[] o2) {
+            return (int) ((float) o2[24] - (float) o1[24]);
+        }
     }
 }
