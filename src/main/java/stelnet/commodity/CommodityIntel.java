@@ -16,7 +16,6 @@ import com.fs.starfarer.api.util.Misc;
 
 import lombok.Getter;
 import stelnet.commodity.market.MarketApiWrapper;
-import stelnet.commodity.market.price.Price;
 
 @Getter
 public class CommodityIntel extends BaseIntelPlugin {
@@ -27,16 +26,13 @@ public class CommodityIntel extends BaseIntelPlugin {
     private final CommoditySpecAPI commodity;
     private final MarketApiWrapper market;
     private final IntelTracker tracker;
-    private final Price priceProvider;
     private final float price;
 
-    public CommodityIntel(String action, CommoditySpecAPI commodity, MarketApiWrapper market, IntelTracker tracker,
-            Price priceProvider) {
+    public CommodityIntel(String action, CommoditySpecAPI commodity, MarketApiWrapper market, IntelTracker tracker) {
         this.action = action;
         this.commodity = commodity;
         this.market = market;
         this.tracker = tracker;
-        this.priceProvider = priceProvider;
         this.price = market.getPriceAmount();
     }
 

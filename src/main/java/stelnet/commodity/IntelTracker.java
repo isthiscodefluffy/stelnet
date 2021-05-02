@@ -5,19 +5,15 @@ import java.util.HashMap;
 import com.fs.starfarer.api.campaign.econ.CommoditySpecAPI;
 
 import stelnet.commodity.market.MarketApiWrapper;
-import stelnet.commodity.market.price.Price;
-import stelnet.commodity.market.price.PriceFactory;
 import stelnet.helper.GlobalHelper;
 import stelnet.helper.IntelHelper;
 
 public class IntelTracker extends HashMap<String, CommodityIntel> {
 
     private static final long serialVersionUID = 1L;
-    private final PriceFactory priceFactory;
 
     public IntelTracker() {
         super();
-        priceFactory = new PriceFactory();
     }
 
     public void remove(CommodityIntel intel) {
@@ -38,8 +34,7 @@ public class IntelTracker extends HashMap<String, CommodityIntel> {
         CommodityIntel intel = get(key);
         if (intel == null) {
             CommoditySpecAPI commodity = GlobalHelper.getCommoditySpec(commodityId);
-            Price price = priceFactory.get(commodityId, commodityTab);
-            intel = new CommodityIntel(action, commodity, market, this, price);
+            intel = new CommodityIntel(action, commodity, market, this);
             IntelHelper.addIntel(intel, true);
             put(key, intel);
         } else {
